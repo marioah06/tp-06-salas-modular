@@ -1,0 +1,53 @@
+<h2>Registrar Nueva Reserva</h2>
+
+<% if (error) { %>
+    <div role="alert" style="background-color: #ffdddd; color: #a00; padding: 10px; margin-bottom: 15px; border: 1px solid #a00;">
+        <%= error %>
+    </div>
+<% } %>
+
+<form action="/reservas" method="POST">
+    <div>
+        <label for="estudiante">Nombre del Estudiante:</label><br>
+        <input type="text" id="estudiante" name="estudiante" value="<%= locals.datos ? datos.estudiante : '' %>" required>
+    </div>
+    <br>
+    <div>
+        <label for="email">Correo Electrónico:</label><br>
+        <input type="email" id="email" name="email" value="<%= locals.datos ? datos.email : '' %>" required>
+    </div>
+    <br>
+    <div>
+        <label for="sala">Sala:</label><br>
+        <select id="sala" name="sala" required>
+            <option value="">Seleccione una sala...</option>
+            <option value="Sala Norte" <%= locals.datos && datos.sala === 'Sala Norte' ? 'selected' : '' %>>Sala Norte</option>
+            <option value="Sala Sur" <%= locals.datos && datos.sala === 'Sala Sur' ? 'selected' : '' %>>Sala Sur</option>
+            <option value="Sala Multimedia" <%= locals.datos && datos.sala === 'Sala Multimedia' ? 'selected' : '' %>>Sala Multimedia</option>
+        </select>
+    </div>
+    <br>
+    <div>
+        <label for="fecha">Fecha:</label><br>
+        <input type="date" id="fecha" name="fecha" value="<%= locals.datos ? datos.fecha : '' %>" required>
+    </div>
+    <br>
+    <div>
+        <label for="turno">Turno:</label><br>
+        <select id="turno" name="turno" required>
+            <option value="">Seleccione un turno...</option>
+            <option value="Mañana" <%= locals.datos && datos.turno === 'Mañana' ? 'selected' : '' %>>Mañana</option>
+            <option value="Tarde" <%= locals.datos && datos.turno === 'Tarde' ? 'selected' : '' %>>Tarde</option>
+            <option value="Noche" <%= locals.datos && datos.turno === 'Noche' ? 'selected' : '' %>>Noche</option>
+        </select>
+    </div>
+    <br>
+    <div>
+        <label for="personas">Cantidad de Personas (1 a 6):</label><br>
+        <input type="number" id="personas" name="personas" min="1" max="6" value="<%= locals.datos ? datos.personas : '' %>" required>
+    </div>
+    <br>
+    <button type="submit">Guardar Reserva</button>
+</form>
+<br>
+<a href="/reservas">Cancelar / Volver</a>

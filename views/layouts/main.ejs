@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= titulo %></title>
+    <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+    <header>
+        <h1>Sistema de Gestión de Salas de Estudio</h1>
+        <nav>
+            <a href="/">Inicio</a> | 
+            <a href="/reservas">Ver Reservas</a> | 
+            <a href="/reservas/nueva">Nueva Reserva</a>
+        </nav>
+    </header>
+
+    <main>
+        <% if (locals.seccion) { %>
+            <small style="color: gray; text-transform: uppercase;"><%= seccion %></small>
+        <% } %>
+        <%- body %>
+    </main>
+
+    <footer>
+        <hr>
+        <p>Trabajo Práctico Semana 5 | Solicitud ID: <span style="font-family: monospace;"><%= locals.solicitudId || 'N/A' %></span></p>
+    </footer>
+</body>
+</html>
