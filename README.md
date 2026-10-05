@@ -1,113 +1,63 @@
-# Trabajo práctico 05
+# Trabajo práctico 06
 
-## Descripción
-Aplicación web desarrollada en Node.js con Express y EJS para la gestión y consulta de reservas en salas de estudio. El proyecto implementa un pipeline de middlewares globales, de router y de validación, cumpliendo con el almacenamiento en memoria y control de solicitudes.
+## Proyecto de partida y cambios
+El proyecto parte de una estructura monolítica previa del TP 05 en la cual toda la lógica se organizaba en un único archivo. Se realizó una refactorización completa hacia una **arquitectura modular de 8 archivos** dentro del directorio `src/`, separando responsabilidades en capas (configuración, servicios, controladores, rutas y middlewares).
 
-## Instalación
-Clonar el repositorio e instalar las dependencias ejecutando:
-\`\`\`bash
-npm install
-\`\`\`
+## Instalación y ejecución
+Para poner en marcha el proyecto localmente, se ejecutaron los siguientes comandos en la terminal:
+- `npm install`: Instalación de dependencias del proyecto (Express, EJS, Morgan, ESLint, Prettier), finalizando con un entorno limpio y sin vulnerabilidades (`found 0 vulnerabilities`).
+- `npm start`: Arranque del servidor ejecutando `node src/index.js`, el cual levanta la aplicación en `http://localhost:3000`.
 
-## Ejecución
-Iniciar la aplicación en modo de producción ejecutando:
-\`\`\`bash
-npm start
-\`\`\`
-O verificar la sintaxis con:
-\`\`\`bash
-npm run check
-\`\`\`
+## Configuración del entorno
+La configuración se centraliza en `src/configuracion.js`, encargada de gestionar y validar las variables de entorno principales como el puerto de escucha (`PORT`) y el entorno de ejecución (`NODE_ENV`), utilizando valores por defecto seguros para desarrollo.
 
-## Rutas
-- `GET /` : Página de inicio del sistema.
-- `GET /estado` : Devuelve el estado actual del servicio en formato JSON (cantidad de reservas e ID de solicitud).
-- `GET /reservas` : Listado general de todas las reservas de salas.
-- `GET /reservas/nueva` : Formulario para registrar una nueva reserva.
-- `GET /reservas/:id` : Detalle de una reserva específica buscada por ID.
-- `POST /reservas` : Procesa y valida los datos del formulario para dar de alta una nueva reserva.
+## Mapa de módulos y dependencias
+El sistema se organiza en módulos interconectados bajo `src/`:
+- `index.js`: Punto de entrada que inicializa la configuración y arranca el servidor.
+- `app.js`: Configura Express, motor de vistas EJS, archivos estáticos y middlewares globales.
+- `servicios/reservas.js`: Contiene la lógica de negocio y el almacenamiento en memoria.
+- `controladores/reservas.js`: Gestiona las peticiones HTTP y la interacción con las vistas.
+- `rutas/reservas.js`: Define el enrutador específico montado bajo el prefijo `/reservas`.
+- `middleware/`: Contiene los validadores de formularios, inyección de secciones, identificador único de solicitud y medidor de duración.
 
-## Pipeline de middleware
-El pipeline global respeta el siguiente orden de ejecución:
-1. `morgan("dev")`
-2. `identificarSolicitud`
-3. `medirDuracion`
-4. `expressLayouts`
-5. `express.static`
-6. `express.urlencoded` / `express.json`
-7. Rutas de aplicación y router de reservas (`/reservas`)
-8. Página 404 (middleware final)
+## Pipeline y contrato de rutas
+El pipeline de Express procesa las peticiones globales mediante Morgan (logueo), generación de ID de solicitud (`X-Request-ID`) y medición de tiempos mediante el evento `finish`. El contrato de rutas incluye:
+- `GET /`: Vista de bienvenida.
+- `GET /estado`: Estado del servicio en formato JSON.
+- `GET /reservas`: Listado de reservas.
+- `GET /reservas/:id`: Detalle de una reserva específica.
+- `POST /reservas`: Creación de una reserva previa validación estricta de campos.
 
-### Diagrama del POST Válido
-\`\`\`text
-POST /reservas
-  ↓ morgan("dev")
-  ↓ identificarSolicitud
-  ↓ medirDuracion
-  ↓ expressLayouts
-  ↓ express.urlencoded
-  ↓ reservasRouter
-  ↓ prepararAreaReservas (middleware de área)
-  ↓ validarReserva
-  ↓ crearReserva (handler final)
-  ↓ 302 /reservas (redirección)
-  ↓ finish: ID + estado + duración
-\`\`\`
+## Matriz antes/después
+- **Antes (TP 05):** Código monolítico en un único archivo, propenso a errores, difícil de escalar y sin herramientas automáticas de validación de estilo.
+- **Después (TP 06):** Arquitectura modular limpia, separación estricta de capas, código formateado y validado estáticamente de forma automática.
 
-### Diagrama del POST Inválido
-\`\`\`text
-POST /reservas
-  ↓ morgan("dev")
-  ↓ identificarSolicitud
-  ↓ medirDuracion
-  ↓ expressLayouts
-  ↓ express.urlencoded
-  ↓ reservasRouter
-  ↓ prepararAreaReservas
-  ↓ validarReserva (falla la validación)
-  ↓ status 400 y render de 'reservas/nueva' (fin del ciclo)
-\`\`\`
+## Formato y análisis estático
+Se implementaron y ejecutaron herramientas de calidad de código:
+- `npm run format`: Ejecuta Prettier para dar formato automático a todo el código fuente en `src/`.
+- `npm run check` (compuesto por `format:check` y `lint`): Valida las reglas de estilo de Prettier y ejecuta ESLint para el análisis estático, arrojando cero errores.
 
-## Alcance de cada función
-- **Globales:** Se aplican a absolutamente todas las peticiones que llegan al servidor (ej. Morgan, identificador, medición).
-- **De router / área:** Se aplican únicamente a un grupo de rutas específicas agrupadas bajo un router montado (ej. el prefijo `/reservas`).
-- **De ruta / handler:** Se ejecutan de manera puntual para una ruta o método HTTP en particular (ej. validación previa al POST o creación final).
+## Persistencia temporal y límites
+Las reservas se almacenan en un arreglo en memoria RAM dentro de la capa de servicios. Al tratarse de persistencia temporal, **cualquier modificación o creación de datos se perderá al reiniciar el servidor**, volviendo al estado inicial definido en el arreglo.
 
-## Validación
-El middleware `validarReserva` normaliza los datos con `trim()`, convierte los campos numéricos y verifica reglas estrictas (email con `@`, salas y turnos permitidos, rango de personas entre 1 y 6). Si falla, responde con código `400` y renderiza el formulario conservando los valores y mostrando un mensaje con `role="alert"`. Si es exitoso, inyecta `req.reservaValidada` y llama a `next()`.
+Por qué el servicio no usa res:
+El servicio (src/servicios/reservas.js) se encarga exclusivamente de la lógica de negocio y del manejo de los datos. No debe conocer ni manipular objetos HTTP como req (request) o res (response), ya que esa es una responsabilidad exclusiva de la capa de control. El servicio solo recibe datos puros, realiza operaciones (filtrar, buscar, crear) y retorna valores o arreglos, lo que hace que el código sea reutilizable y fácil de probar de forma aislada.
 
-## Pruebas manuales
-Se validaron de manera exitosa los estados HTTP `200`, `302`, `400` y `404` mediante la matriz de pruebas manuales, comprobando el registro correcto en la terminal por parte de Morgan y el middleware de medición.
+Qué hace el controlador:
+El controlador (src/controladores/reservas.js) actúa como intermediario entre las peticiones HTTP y la lógica de negocio. Recibe los objetos req y res, extrae los parámetros o datos enviados por el cliente, invoca a las funciones correspondientes del servicio de reservas, y finalmente decide cómo responder (renderizando una vista EJS, enviando un JSON o realizando una redirección HTTP).
 
-## Persistencia temporal
-Los datos se almacenan exclusivamente en memoria RAM. Al reiniciar la aplicación, las altas temporales se eliminan y el sistema regresa a su estado inicial predefinido.
+Por qué el router declara caminos relativos:
+El enrutador (src/rutas/reservas.js) declara rutas relativas (como "/" o "/:id") porque está diseñado para ser modular. Al montarse en la aplicación principal (app.js) bajo un prefijo común (app.use("/reservas", rutasReservas)), todas sus rutas internas se concatenan automáticamente a ese prefijo. Esto permite que el módulo sea independiente y pueda trasladarse o escalarse fácilmente sin hardcodear rutas absolutas.
 
----
+Dónde vive el único arreglo de reservas y qué ocurrirá con él al reiniciar:
+El único arreglo de reservas vive en la memoria RAM del servidor, específicamente dentro del archivo del servicio (src/servicios/reservas.js). Al tratarse de persistencia temporal en memoria, cualquier modificación (creación de una nueva reserva) se perderá y el arreglo volverá a su estado inicial cada vez que el servidor se reinicie (por ejemplo, al detener el proceso con Ctrl + C o al reiniciar Nodemon).
 
-## Preguntas teóricas (Explicación con palabras propias)
+Comandos ejecutados y sus resultados:
 
-- **Diferencia entre middleware incorporado, de terceros y personalizado:**
-  Los incorporados (*built-in*) vienen incluidos nativamente en Express (como `express.urlencoded` o `express.static`). Los de terceros son paquetes externos instalados vía npm (como `morgan` o `express-ejs-layouts`). Los personalizados son funciones creadas por el desarrollador para cumplir una lógica específica de la aplicación.
+npm install: Instaló las 190 dependencias del proyecto de forma limpia y sin vulnerabilidades (found 0 vulnerabilities).
 
-- **Cuándo se utiliza `next()`:**
-  Se utiliza dentro de una función de middleware para ceder el control al siguiente middleware o ruta en el pipeline. Si no se llama a `next()` ni se envía una respuesta HTTP, la petición quedará colgada indefinidamente.
+npm start: Puso en marcha el servidor Node.js ejecutando src/index.js, dejándolo activo en http://localhost:3000 en entorno de desarrollo.
 
-- **Por qué los parsers aparecen antes de la validación:**
-  Porque la validación necesita leer y analizar los datos enviados por el usuario en el cuerpo de la petición (`req.body`). Si los parsers (`express.urlencoded`) no se ejecutaran antes, `req.body` llegaría totalmente indefinido (`undefined`).
+npm run format: Ejecutó Prettier para formatear y estilar automáticamente todos los archivos dentro de la carpeta src/.
 
-- **Diferencia entre alcance global, de router y de ruta:**
-  El alcance global afecta a toda la aplicación sin importar la URL. El alcance de router se comparte entre todas las rutas agrupadas bajo un mismo prefijo común (ej. `/reservas`). El alcance de ruta se aplica de forma aislada a un endpoint o método específico.
-
-- **Motivo del evento `finish`:**
-  Se utiliza en el middleware de medición para registrar el tiempo exacto en que la respuesta HTTP ha terminado de enviarse por completo al cliente, garantizando que el cálculo de la duración sea real y preciso.
-
-- **Resultado del montaje del router:**
-  Permite modularizar y agrupar todas las rutas relacionadas bajo un prefijo común (`/reservas`), simplificando las rutas internas para que sean relativas y aplicando middlewares específicos únicamente a esa sección.
-
-- **Diferencia entre el POST 302 y el GET posterior:**
-  El POST responde con un código `302 Found` ordenando al navegador redirigirse tras un alta exitosa. El navegador realiza automáticamente una nueva petición de tipo `GET` a la ruta del listado (`/reservas`) para mostrar la interfaz actualizada.
-
-- **Motivo por el cual las altas desaparecen al reiniciar:**
-  Porque los datos están estructurados y almacenados exclusivamente en una variable array residente en la memoria RAM del servidor, sin utilizar bases de datos ni persistencia en archivos de disco físico.
-\`\`\`
-
+npm run check (compuesto por format:check y lint): Verificó que el código cumpliera estrictamente con el estilo de Prettier y pasó el análisis estático de ESLint sin errores ni advertencias.

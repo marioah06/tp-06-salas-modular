@@ -1,17 +1,25 @@
 {
-  "name": "tp-05-salas-middleware",
+  "name": "tp-06-salas-modular",
   "version": "1.0.0",
-  "description": "Trabajo Práctico 05 - Pipeline de middleware en Express",
+  "description": "Trabajo Práctico 06 - Refactorización modular de reservas",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js",
-    "check": "node --check src/index.js"
+    "format": "prettier --write src",
+    "format:check": "prettier --check src",
+    "lint": "eslint src",
+    "check": "npm run format:check && npm run lint"
   },
   "dependencies": {
     "ejs": "^3.1.9",
     "express": "^4.19.2",
     "express-ejs-layouts": "^2.5.1",
     "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^8.57.1",
+    "prettier": "^3.2.5"
   }
 }
