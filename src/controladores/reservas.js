@@ -3,7 +3,16 @@ const servicioReservas = require("../servicios/reservas");
 function mostrarListado(req, res) {
   const reservas = servicioReservas.listarReservas();
   const total = servicioReservas.contarReservas();
-  res.render("reservas/listado", { reservas, total });
+
+  res.render("reservas/lista", { titulo: "Listado de Reservas", reservas, total });
+}
+
+function mostrarFormularioAlta(req, res) {
+  res.render("reservas/nueva", { 
+    titulo: "Nueva Reserva",
+    error: null, 
+    datos: {} 
+  });
 }
 
 function mostrarDetalle(req, res) {
@@ -13,27 +22,36 @@ function mostrarDetalle(req, res) {
   if (!reserva) {
     return res
       .status(404)
-      .render("no-encontrado", { mensaje: "Reserva no encontrada" });
+      .render("no-encontrado", { titulo: "No encontrada" });
   }
 
-  res.render("reservas/detalle", { reserva });
+  res.render("reservas/detalle", { titulo: "Detalle de Reserva", reserva });
+}
+
+function obtenerEstado(req, res) {
+  const cantidad = servicioReservas.contarReservas();
+  res.json({ cantidad });
 }
 
 function crearNuevaReserva(req, res) {
-  const { sala, usuario, fecha, hora } = req.body;
+  const datosReserva = req.reservaValidada || {
+    estudiante: req.body.estudiante,
+    email: req.body.email,
+    sala: req.body.sala,
+    fecha: req.body.fecha,
+    turno: req.body.turno,
+    personas: req.body.personas,
+  };
 
-  servicioReservas.crearReserva({
-    sala,
-    usuario,
-    fecha,
-    hora,
-  });
+  servicioReservas.crearReserva(datosReserva);
 
   res.redirect("/reservas");
 }
 
 module.exports = {
   mostrarListado,
+  mostrarFormularioAlta,
   mostrarDetalle,
+  obtenerEstado,
   crearNuevaReserva,
 };

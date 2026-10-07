@@ -1,10 +1,8 @@
-const { PORT, NODE_ENV } = require("./configuracion");
-const crearApp = require("./app");
+const { port, nodeEnv } = require("./configuracion");
+const app = require("./app");
 
-const app = crearApp();
-
-app.listen(PORT, () => {
+app.listen(port, () => {
   console.log(
-    `Servidor corriendo en http://localhost:${PORT} [Ambiente: ${NODE_ENV}]`,
+    `Servidor corriendo en http://localhost:${port} [Ambiente: ${nodeEnv}]`
   );
 });

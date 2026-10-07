@@ -1,17 +1,21 @@
 let reservas = [
   {
     id: 1,
+    estudiante: "Juan Pérez",
+    email: "juan.perez@example.com",
     sala: "Sala A",
-    usuario: "Juan Pérez",
     fecha: "2026-06-01",
-    hora: "10:00",
+    turno: "Mañana",
+    personas: 2,
   },
   {
     id: 2,
+    estudiante: "María Gómez",
+    email: "maria.gomez@example.com",
     sala: "Sala B",
-    usuario: "María Gómez",
     fecha: "2026-06-02",
-    hora: "14:00",
+    turno: "Tarde",
+    personas: 4,
   },
 ];
 

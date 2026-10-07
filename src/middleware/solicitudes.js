@@ -1,7 +1,8 @@
-function generarIdSolicitud(req, res, next) {
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  req.idSolicitud = `BIB-${randomNum}`;
-  res.setHeader("X-Request-ID", req.idSolicitud);
+let contadorBib = 1;
+
+function identificarSolicitud(req, res, next) {
+  const solicitudId = `BIB-${String(contadorBib++).padStart(3, "0")}`;
+  res.locals.solicitudId = solicitudId;
   next();
 }
 
@@ -9,10 +10,12 @@ function medirDuracion(req, res, next) {
   const inicio = process.hrtime();
 
   res.on("finish", () => {
-    const diff = process.hrtime(inicio);
-    const duracionMs = (diff[0] * 1e3 + diff[1] * 1e-6).toFixed(2);
-    console.H?.(
-      `[${req.idSolicitud}] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duracionMs} ms)`,
+    const [segundos, nanosegundos] = process.hrtime(inicio);
+    const duracionMs = (segundos * 1000 + nanosegundos / 1e6).toFixed(2);
+    const solicitudId = res.locals.solicitudId || "N/A";
+
+    console.log(
+      `[${solicitudId}] ${req.method} ${req.originalUrl} - Status: ${res.statusCode} - Duración: ${duracionMs}ms`
     );
   });
 
@@ -20,6 +23,6 @@ function medirDuracion(req, res, next) {
 }
 
 module.exports = {
-  generarIdSolicitud,
-  medidorDuracion: medirDuracion,
+  identificarSolicitud,
+  medirDuracion,
 };

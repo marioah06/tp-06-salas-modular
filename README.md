@@ -29,8 +29,16 @@ El pipeline de Express procesa las peticiones globales mediante Morgan (logueo),
 - `POST /reservas`: Creación de una reserva previa validación estricta de campos.
 
 ## Matriz antes/después
-- **Antes (TP 05):** Código monolítico en un único archivo, propenso a errores, difícil de escalar y sin herramientas automáticas de validación de estilo.
-- **Después (TP 06):** Arquitectura modular limpia, separación estricta de capas, código formateado y validado estáticamente de forma automática.
+
+| Método | Ruta | Estado Inicial (TP05 / Antes) | Estado Final Corregido (TP06 / Después) | Vista / Respuesta asociada | Evidencia / Comportamiento |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `GET` | `/` | 200 OK | **200 OK** | `views/inicio.ejs` | Renderiza la página principal con layout principal. |
+| `GET` | `/estado` | 404 No encontrado | **200 OK** | JSON `{ cantidad: N }` | Consulta directa al servicio en memoria devolviendo conteo. |
+| `GET` | `/reservas` | 200 OK | **200 OK** | `views/reservas/lista.ejs` | Muestra el listado de reservas y el contador. |
+| `GET` | `/reservas/nueva` | Conflicto con `/:id` | **200 OK** | `views/reservas/nueva.ejs` | Muestra el formulario de alta (ruta priorizada correctamente antes de `/:id`). |
+| `POST` | `/reservas` | Alta sin validación estricta | **302 / 400** | Redirección o Vista 400 | 400 con errores y valores previos si falla; 302 y alta si es válido. |
+| `GET` | `/reservas/:id` | 404 erróneo | **200 / 404** | Detalle o `no-encontrado.ejs` | Muestra la reserva por ID o vista 404 si no existe. |
+| `GET` | `/ruta-inexistente` | 404 genérico | **404 HTML** | `views/no-encontrado.ejs` | Manejador global final para rutas no mapeadas. |
 
 ## Formato y análisis estático
 Se implementaron y ejecutaron herramientas de calidad de código:
